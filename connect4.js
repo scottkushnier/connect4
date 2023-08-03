@@ -43,6 +43,9 @@ class Game {
     this.player1 = new Player(color1, 1);
     this.player2 = new Player(color2, 2);
     this.currentPlayer = this.player1;
+    this.winCells = [];
+    const showWinButton = document.querySelector('#show-win');
+    showWinButton.style.visibility = 'hidden';
   }
 
   /** makeBoard: create in-JS board structure:
@@ -129,6 +132,8 @@ class Game {
     myInterval = setInterval(function () {
       this.blinkCells(cells);
     }.bind(this), 200);
+    const showWinButton = document.querySelector('#show-win');
+    showWinButton.style.visibility = 'visible';
   }
 
   win(cells) {
@@ -145,6 +150,7 @@ class Game {
     );
     if (isAWin) {
       // console.log(cells);
+      this.winCells = cells;
       this.showWin(cells);
     }
     return(isAWin);
@@ -262,3 +268,9 @@ document.querySelector('#start-game').addEventListener('click', function () {
 
 
   let myInterval = null;
+
+  document.querySelector('#show-win').addEventListener('click', function () {
+    myGame.showWin(myGame.winCells);
+  });
+
+  
