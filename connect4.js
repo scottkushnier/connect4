@@ -7,13 +7,15 @@
 
 /** placeInTable: update DOM to place piece into HTML table of board */
 
+
+
 function placeInTable(y, x, player) {
   // console.log('place in table:', x, y);
   const piece = document.createElement('div');
   piece.classList.add('piece');
   piece.style.backgroundColor = player.color;
   // piece.style.top = -50 * (y + 2);   // vestigal code?
-  const spot = document.getElementById(`${y}-${x}`);
+  const spot = document.getElementById(`spot-${y}-${x}`);
   spot.append(piece);
 }
 
@@ -91,18 +93,49 @@ class Game {
   
       for (let x = 0; x < this.width; x++) {
         const cell = document.createElement('td');
-        cell.setAttribute('id', `${y}-${x}`);
+        cell.setAttribute('id', `spot-${y}-${x}`);
         row.append(cell);
       }
       board.append(row);
     }
   }
-  
-win(cells) {
+
+  blinkCells(cells) {
+    cells.forEach(function (cell) {
+      const y = cell[0];
+      const x = cell[1];
+      const td = document.querySelector(`#spot-${y}-${x}`);
+      const piece = td.querySelector('DIV');
+      if (this.onWhite) {
+        piece.style.backgroundColor = this.winColor;
+      } else {
+        piece.style.backgroundColor = 'white';
+      }
+    }.bind(this));
+    this.onWhite = !this.onWhite;
+    this.blinkCount++;
+    if (this.blinkCount >= 15) {
+      clearInterval(myInterval);
+    }
+  }
+
+  showWin(cells) {
+    const td = document.querySelector(`#spot-${cells[0][0]}-${cells[0][1]}`);
+    const piece = td.querySelector('DIV');
+    this.onWhite = true;
+    this.winColor = piece.style.backgroundColor;
+    this.blinkCount = 0;
+    this.blinkCells(cells);
+    myInterval = setInterval(function () {
+      this.blinkCells(cells);
+    }.bind(this), 200);
+  }
+
+  win(cells) {
     // Check four cells to see if they're all color of current player
     //  - cells: list of four (y, x) cells
     //  - returns true if all are legal coordinates & all match currPlayer
-    return cells.every(
+    const isAWin = cells.every(
       ([y, x]) =>
         y >= 0 &&
         y < this.height &&
@@ -110,6 +143,11 @@ win(cells) {
         x < this.width &&
         this.board[y][x] === this.currentPlayer.index
     );
+    if (isAWin) {
+      // console.log(cells);
+      this.showWin(cells);
+    }
+    return(isAWin);
   }
   
   /** checkForWin: check board cell-by-cell for "does a win start here?" */
@@ -135,7 +173,7 @@ win(cells) {
     this.gameOver = true;
     setTimeout(function () {         // give chance to show last disc before pop-up window
       alert(msg);
-    }, 100);
+    }, 3000);
   }
 
   /** findSpotForCol: given column x, return top empty y (null if filled) */
@@ -221,3 +259,6 @@ document.querySelector('#start-game').addEventListener('click', function () {
   myGame = new Game(6, 7, document.querySelector('#player-1-color').value, 
                           document.querySelector('#player-2-color').value);
   });
+
+
+  let myInterval = null;
